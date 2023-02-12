@@ -12,7 +12,9 @@ import pandas as pd
 import json
 import unidecode
 import dateutil.parser as dparser
-import pprint
+from pprint import pprint
+import argparse
+import datetime
 
 
 class bcolors:
@@ -88,30 +90,54 @@ def find_time_interval(txt):
     hours = line_of_time[2].split(' ')
     start = dparser.parse(date + ' ' + hours[3] + ' ' + hours[4], fuzzy=True)
     end = dparser.parse(date + ' ' + hours[6] + ' ' + hours[7], fuzzy=True)
-
+    if start > end:
+        end = end + datetime.timedelta(days=1)
     return pd.Interval(pd.Timestamp(start), pd.Timestamp(end))
 
 
+# define variables
+scopes = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify']
+
+fati_credentials1_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\credentials\credentials_mtn.json'
+fati_token1_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens\token_mtn.json'
+fati_credentials2_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\credentials\credentials_fati.json'
+fati_token2_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens\token_fati.json'
+
+mtn_credentials1_path = '/home/matin/paper_gmail_shift_transfer/credentials/credentials_mtn.json'
+mtn_token1_path = '/home/matin/paper_gmail_shift_transfer/tokens/token_mtn.json'
+mtn_credentials2_path = '/home/matin/paper_gmail_shift_transfer/credentials/credentials_fati.json'
+mtn_token2_path = '/home/matin/paper_gmail_shift_transfer/tokens/token_fati.json'
+
+fati_unable_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\unable_times.json'
+mtn_unable_path = '/home/matin/paper_gmail_shift_transfer/unable_times.json'
+
+fati_used_quota_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\used_quota.txt'
+mtn_used_quota_path = 'used_quota.txt'
+
+fati_creds_and_tokens_path = [{'creds': fati_credentials1_path, 'token': fati_token1_path},
+                              {'creds': fati_credentials2_path, 'token': fati_token2_path}]
+mtn_creds_and_tokens_path = [{'creds': mtn_credentials1_path, 'token': mtn_token1_path},
+                             {'creds': mtn_credentials2_path, 'token': mtn_token2_path}]
+
+make_read_body = {"addLabelIds": [], "removeLabelIds": ['UNREAD']}
+
 if __name__ == '__main__':
-    scopes = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify']
 
-    fati_credentials1_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\credentials\credentials_mtn.json'
-    fati_token1_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens\token_mtn.json'
-    fati_credentials2_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\credentials\credentials_fati.json'
-    fati_token2_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens\token_fati.json'
+    parser = argparse.ArgumentParser(description='gmail shift transfer script')
+    parser.add_argument('-w', '--who', help='who is running this script', required=True, type=str)
+    args = vars(parser.parse_args())
+    who = args['who']
 
-    mtn_credentials1_path = '/home/matin/paper_gmail_shift_transfer/credentials/credentials_mtn.json'
-    mtn_token1_path = '/home/matin/paper_gmail_shift_transfer/tokens/token_mtn.json'
-    mtn_credentials2_path = '/home/matin/paper_gmail_shift_transfer/credentials/credentials_fati.json'
-    mtn_token2_path = '/home/matin/paper_gmail_shift_transfer/tokens/token_fati.json'
-
-    fati_creds_and_tokens_path = [{'creds': fati_credentials1_path, 'token': fati_token1_path},
-                                  {'creds': fati_credentials2_path, 'token': fati_token2_path}]
-
-    mtn_creds_and_tokens_path = [{'creds': mtn_credentials1_path, 'token': mtn_token1_path},
-                                 {'creds': mtn_credentials2_path, 'token': mtn_token2_path}]
-
-    creds_and_tokens_path = mtn_creds_and_tokens_path
+    if who == 'fati':
+        creds_and_tokens_path = fati_creds_and_tokens_path
+        unable_path = fati_unable_path
+        used_quota_path = fati_used_quota_path
+    elif who == 'mtn':
+        creds_and_tokens_path = mtn_creds_and_tokens_path
+        unable_path = mtn_unable_path
+        used_quota_path = mtn_used_quota_path
+    else:
+        raise Exception('the person who is running this code is unidentified')
 
     creds_index = 0
     credentials_path = creds_and_tokens_path[creds_index]['creds']
@@ -119,15 +145,6 @@ if __name__ == '__main__':
 
     creds = get_creds(credentials_path, token_path, scopes)
     service = build('gmail', 'v1', credentials=creds)
-    make_read_body = {"addLabelIds": [], "removeLabelIds": ['UNREAD']}
-
-    mtn_unable_path = '/home/matin/paper_gmail_shift_transfer/unable_times.json'
-    fati_unable_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\unable_times.json'
-    unable_path = fati_unable_path
-
-    mtn_used_quota_path = 'used_quota.txt'
-    fati_used_quota_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\used_quota.txt'
-    used_quota_path = fati_used_quota_path
 
     unable_file = open(unable_path)
     unable_times = array_to_time_intervals(json.load(unable_file))
@@ -145,25 +162,24 @@ if __name__ == '__main__':
             if read_message_subject(msg) == 'Shift Transfer Request':
                 text = read_message_text(msg)
                 request_interval = find_time_interval(text)
-                able = True
                 for interval in unable_times:
                     if interval.overlaps(request_interval):
-                        able = False
-                if able:
-                    link = find_link(text)
-                    webbrowser.open(link)
-                    print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
-                    print(link)
-                    print(f'{bcolors.WARNING}-----------------------------------')
-                else:
-                    print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
-                    print('Rejected - Bad timing')
-                    print(f'{bcolors.WARNING}XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                        print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
+                        print(f'Rejected due to overlap with: {interval}')
+                        print(f'{bcolors.WARNING}XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                        raise Exception
+
+                link = find_link(text)
+                webbrowser.open(link)
+                print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
+                print(link)
+                print(f'{bcolors.WARNING}-----------------------------------')
+
                 service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
                 user_used_quota += 5
         except Exception as e:
             print(f'{bcolors.FAIL}{time.ctime(time.time())}')
-            print(f'{bcolors.FAIL}{e}')
+            pprint(e)
             print(f'{bcolors.WARNING}-----------------------------------')
 
             if e.args[0] == 'invalid_grant: Token has been expired or revoked.':
