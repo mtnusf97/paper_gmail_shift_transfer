@@ -121,7 +121,10 @@ if __name__ == '__main__':
     service = build('gmail', 'v1', credentials=creds)
     make_read_body = {"addLabelIds": [], "removeLabelIds": ['UNREAD']}
 
-    unable_path = '/home/matin/paper_gmail_shift_transfer/unable_times.json'
+    mtn_unable_path = '/home/matin/paper_gmail_shift_transfer/unable_times.json'
+    fati_unable_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\unable_times.json'
+    unable_path = fati_unable_path
+
     unable_file = open(unable_path)
     unable_times = array_to_time_intervals(json.load(unable_file))
 
