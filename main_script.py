@@ -125,6 +125,10 @@ if __name__ == '__main__':
     fati_unable_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\unable_times.json'
     unable_path = fati_unable_path
 
+    mtn_used_quota_path = 'used_quota.txt'
+    fati_used_quota_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\used_quota.txt'
+    used_quota_path = fati_used_quota_path
+
     unable_file = open(unable_path)
     unable_times = array_to_time_intervals(json.load(unable_file))
 
@@ -180,7 +184,7 @@ if __name__ == '__main__':
             last_time = time.time()
             total_user_used_quota += user_used_quota
             user_used_quota = 0
-            with open('used_quota.txt', 'a') as f:
+            with open(used_quota_path, 'a') as f:
                 f.write(f'\nuser quota exceeded 250 - total: {total_user_used_quota}\nelapsed time: {period}'
                         f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
         time.sleep(1)
