@@ -114,6 +114,9 @@ mtn_unable_path = '/home/matin/paper_gmail_shift_transfer/unable_times.json'
 fati_used_quota_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\used_quota.txt'
 mtn_used_quota_path = 'used_quota.txt'
 
+fati_errors_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\errors.txt'
+mtn_errors_path = 'errors.txt'
+
 fati_creds_and_tokens_path = [{'creds': fati_credentials1_path, 'token': fati_token1_path},
                               {'creds': fati_credentials2_path, 'token': fati_token2_path}]
 mtn_creds_and_tokens_path = [{'creds': mtn_credentials1_path, 'token': mtn_token1_path},
@@ -132,10 +135,12 @@ if __name__ == '__main__':
         creds_and_tokens_path = fati_creds_and_tokens_path
         unable_path = fati_unable_path
         used_quota_path = fati_used_quota_path
+        errors_path = fati_errors_path
     elif who == 'mtn':
         creds_and_tokens_path = mtn_creds_and_tokens_path
         unable_path = mtn_unable_path
         used_quota_path = mtn_used_quota_path
+        errors_path = mtn_errors_path
     else:
         raise Exception('the person who is running this code is unidentified')
 
@@ -189,12 +194,10 @@ if __name__ == '__main__':
                 print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
                 pprint(e)
                 print(f'{bcolors.WARNING}-----------------------------------')
+                with open(errors_path, 'a') as f:
+                    f.write(f'\nerror occurred:\n{e}'
+                            f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
                 break
-                creds_index += 1
-                credentials_path, token_path = next_creds(creds_and_tokens_path, creds_index)
-                creds = get_creds(credentials_path, token_path, scopes)
-                service = build('gmail', 'v1', credentials=creds)
-                print('token and creds were change due to user-rate limit')
         if user_used_quota > 250:
             period = time.time() - last_time
             last_time = time.time()
