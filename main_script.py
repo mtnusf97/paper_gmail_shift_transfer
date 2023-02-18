@@ -142,7 +142,7 @@ if __name__ == '__main__':
         used_quota_path = mtn_used_quota_path
         errors_path = mtn_errors_path
     else:
-        raise Exception('the person who is running this code is unidentified')
+        raise Exception('the person who is running this code is unknown')
 
     creds_index = 0
     credentials_path = creds_and_tokens_path[creds_index]['creds']
@@ -182,21 +182,20 @@ if __name__ == '__main__':
 
                 service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
                 user_used_quota += 5
+        except KeyError:
+            pass
         except Exception as e:
-            print(f'{bcolors.FAIL}{time.ctime(time.time())}')
+            print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
             pprint(e)
             print(f'{bcolors.WARNING}-----------------------------------')
+            with open(errors_path, 'a') as f:
+                f.write(f'\nerror occurred:\n{e}'
+                        f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
 
             if e.args[0] == 'invalid_grant: Token has been expired or revoked.':
                 creds = get_creds(credentials_path, token_path, scopes)
                 service = build('gmail', 'v1', credentials=creds)
             elif 'User-rate limit exceeded' in e.reason:
-                print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
-                pprint(e)
-                print(f'{bcolors.WARNING}-----------------------------------')
-                with open(errors_path, 'a') as f:
-                    f.write(f'\nerror occurred:\n{e}'
-                            f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
                 break
         if user_used_quota > 250:
             period = time.time() - last_time
