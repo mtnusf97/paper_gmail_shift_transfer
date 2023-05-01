@@ -1,0 +1,8 @@
+INFO  | 05/01/2023 06:03:00 PM | file_cache is only supported with oauth2client<4.0.0
+INFO  | 05/01/2023 06:03:52 PM | A shift transfer request rejected due to overlap with: (2023-04-23 14:00:00, 2023-04-23 18:00:00]
+ERROR | 05/01/2023 06:03:53 PM | ERROR!!!
+Traceback (most recent call last):
+  File "/home/matin/paper_gmail_shift_transfer/main_script.py", line 152, in <module>
+    raise Exception('Rejection due to overlap')
+Exception: Rejection due to overlap
+INFO  | 05/01/2023 06:03:57 PM | user quota exceeded 250 - total: 255 elapsed time: 56.64876675605774

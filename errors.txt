@@ -1,5 +1,0 @@
-errors here
-error occurred:
-list index out of range
-current time: Mon Mar 13 23:20:50 2023
------------------------

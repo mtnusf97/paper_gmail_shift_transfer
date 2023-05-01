@@ -12,9 +12,12 @@ import pandas as pd
 import json
 import unidecode
 import dateutil.parser as dparser
-from pprint import pprint
 import argparse
 import datetime
+import requests
+from utils.config import *
+from utils.logger import setup_logging
+import pickle
 
 
 class bcolors:
@@ -48,8 +51,8 @@ def get_creds(credentials_path, token_path, scopes):
     return creds
 
 
-def read_message_subject(msg):
-    payload = msg['payload']
+def read_message_subject(message):
+    payload = message['payload']
     headers = payload.get("headers")
     if headers:
         for header in headers:
@@ -95,34 +98,16 @@ def find_time_interval(txt):
     return pd.Interval(pd.Timestamp(start), pd.Timestamp(end))
 
 
-# define variables
-scopes = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify']
+def send_telegram_message(botID, channelID, message):
+    telegram_api_url = f"https://api.telegram.org/bot{botID}/sendMessage?chat_id=@{channelID}&text={message}"
+    response = requests.get(telegram_api_url)
+    return response
 
-fati_credentials1_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\credentials\credentials_mtn.json'
-fati_token1_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens\token_mtn.json'
-fati_credentials2_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\credentials\credentials_fati.json'
-fati_token2_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens\token_fati.json'
 
-mtn_credentials1_path = '/home/matin/paper_gmail_shift_transfer/credentials/credentials_mtn.json'
-mtn_token1_path = '/home/matin/paper_gmail_shift_transfer/tokens/token_mtn.json'
-mtn_credentials2_path = '/home/matin/paper_gmail_shift_transfer/credentials/credentials_fati.json'
-mtn_token2_path = '/home/matin/paper_gmail_shift_transfer/tokens/token_fati.json'
+def save_error(path, error):
+    with open(path, 'wb') as file:
+        pickle.dump(error, file, pickle.HIGHEST_PROTOCOL)
 
-fati_unable_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\unable_times.json'
-mtn_unable_path = '/home/matin/paper_gmail_shift_transfer/unable_times.json'
-
-fati_used_quota_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\used_quota.txt'
-mtn_used_quota_path = 'used_quota.txt'
-
-fati_errors_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\errors.txt'
-mtn_errors_path = 'errors.txt'
-
-fati_creds_and_tokens_path = [{'creds': fati_credentials1_path, 'token': fati_token1_path},
-                              {'creds': fati_credentials2_path, 'token': fati_token2_path}]
-mtn_creds_and_tokens_path = [{'creds': mtn_credentials1_path, 'token': mtn_token1_path},
-                             {'creds': mtn_credentials2_path, 'token': mtn_token2_path}]
-
-make_read_body = {"addLabelIds": [], "removeLabelIds": ['UNREAD']}
 
 if __name__ == '__main__':
 
@@ -130,33 +115,23 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--who', help='who is running this script', required=True, type=str)
     args = vars(parser.parse_args())
     who = args['who']
+    
+    user_config = user_configs(who)
+    
+    now_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+    log_file = os.path.join(user_config.log_path, "log_{}.txt".format(now_str))
+    logger = setup_logging('INFO', log_file)
 
-    if who == 'fati':
-        creds_and_tokens_path = fati_creds_and_tokens_path
-        unable_path = fati_unable_path
-        used_quota_path = fati_used_quota_path
-        errors_path = fati_errors_path
-    elif who == 'mtn':
-        creds_and_tokens_path = mtn_creds_and_tokens_path
-        unable_path = mtn_unable_path
-        used_quota_path = mtn_used_quota_path
-        errors_path = mtn_errors_path
-    else:
-        raise Exception('the person who is running this code is unknown')
-
-    creds_index = 0
-    credentials_path = creds_and_tokens_path[creds_index]['creds']
-    token_path = creds_and_tokens_path[creds_index]['token']
-
-    creds = get_creds(credentials_path, token_path, scopes)
+    creds = get_creds(user_config.credentials_path, user_config.token_path, scopes)
     service = build('gmail', 'v1', credentials=creds)
 
-    unable_file = open(unable_path)
+    unable_file = open(user_config.unable_path)
     unable_times = array_to_time_intervals(json.load(unable_file))
 
     user_used_quota = 0
     total_user_used_quota = 0
     last_time = time.time()
+
     while True:
         try:
             messages = service.users().messages().list(userId='me', maxResults=1, labelIds='UNREAD').execute()
@@ -165,35 +140,43 @@ if __name__ == '__main__':
             msg = service.users().messages().get(userId='me', id=message_id, format='full').execute()
             user_used_quota += 5
             if read_message_subject(msg) == 'Shift Transfer Request':
+                service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
                 text = read_message_text(msg)
                 request_interval = find_time_interval(text)
                 for interval in unable_times:
                     if interval.overlaps(request_interval):
-                        print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
-                        print(f'Rejected due to overlap with: {interval}')
-                        print(f'{bcolors.WARNING}XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-                        raise Exception
-
+                        msg = f'A shift transfer request rejected due to overlap with: {interval}'
+                        print(msg + '\n-------------------------------------')
+                        send_telegram_message(botID=bot_token, channelID=channel_id, message=msg)
+                        logger.info(msg)
+                        raise Exception('Rejection due to overlap')
                 link = find_link(text)
                 webbrowser.open(link)
-                print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
-                print(link)
-                print(f'{bcolors.WARNING}-----------------------------------')
-
-                service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
+                msg = f'A shift transfer request opened with the link: \n{link}'
+                print(msg + '\n-------------------------------------')
+                send_telegram_message(botID=bot_token, channelID=channel_id, message=msg)
+                logger.info(msg)
                 user_used_quota += 5
         except KeyError:
             pass
         except Exception as e:
-            print(f'{bcolors.OKBLUE}{time.ctime(time.time())}')
-            pprint(e)
-            print(f'{bcolors.WARNING}-----------------------------------')
-            with open(errors_path, 'a') as f:
-                f.write(f'\nerror occurred:\n{e}'
-                        f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
+            now_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+            error_file = os.path.join(user_config.error_path, str(e) + f"_error_{now_str}.pkl")
+            save_error(error_file, e)
 
-            if e.args[0] == 'invalid_grant: Token has been expired or revoked.':
-                creds = get_creds(credentials_path, token_path, scopes)
+            msg = f'\nError occurred:\n{e}' \
+                  f'\ncurrent time: {time.ctime(time.time())}'
+            print(msg + '\n-------------------------------------')
+            send_telegram_message(botID=bot_token, channelID=channel_id, message=msg)
+            logger.exception('ERROR!!!')
+
+            if e.args[0] == 'Rejection due to overlap':
+                pass
+            elif e.args[0] == 'invalid_grant: Token has been expired or revoked.':
+                msg = '\n>>>URGENT<<<\nToken has been expired. Check your browser to grant access for a new one.'
+                print(msg + '\n-------------------------------------')
+                send_telegram_message(botID=bot_token, channelID=channel_id, message=msg)
+                creds = get_creds(user_config.credentials_path, user_config.token_path, scopes)
                 service = build('gmail', 'v1', credentials=creds)
             elif 'User-rate limit exceeded' in e.reason:
                 break
@@ -202,7 +185,9 @@ if __name__ == '__main__':
             last_time = time.time()
             total_user_used_quota += user_used_quota
             user_used_quota = 0
-            with open(used_quota_path, 'a') as f:
-                f.write(f'\nuser quota exceeded 250 - total: {total_user_used_quota}\nelapsed time: {period}'
-                        f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
+            msg = f'user quota exceeded 250 - total: {total_user_used_quota} elapsed time: {period}'
+            logger.info(msg)
+            # with open(user_config.used_quota_path, 'a') as f:
+            #     f.write(f'\nuser quota exceeded 250 - total: {total_user_used_quota}\nelapsed time: {period}'
+            #             f'\ncurrent time: {time.ctime(time.time())}\n-----------------------')
         time.sleep(1)
