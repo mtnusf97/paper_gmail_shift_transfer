@@ -179,6 +179,9 @@ if __name__ == '__main__':
                 creds = get_creds(user_config.credentials_path, user_config.token_path, scopes)
                 service = build('gmail', 'v1', credentials=creds)
             elif 'User-rate limit exceeded' in e.reason:
+                msg = '\nUser-rate limit exceeded'
+                print(msg + '\n-------------------------------------')
+                send_telegram_message(botID=bot_token, channelID=channel_id, message=msg)
                 break
         if user_used_quota > 250:
             period = time.time() - last_time
