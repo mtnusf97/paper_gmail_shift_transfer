@@ -1,0 +1,7 @@
+INFO  | 11/07/2023 08:31:59 PM | file_cache is only supported with oauth2client<4.0.0
+INFO  | 11/07/2023 08:32:57 PM | user quota exceeded 250 - total: 255 elapsed time: 57.75800609588623
+INFO  | 11/07/2023 08:32:58 PM | A shift transfer request opened with the link: 
+https://mandrillapp.com/track/click/30952325/app.paper.co?p=eyJzIjoiNURMWDlDb2lpbE1La3dLaHV5cndDaUhmakJRIiwidiI6MSwicCI6IntcInVcIjozMDk1MjMyNSxcInZcIjoxLFwidXJsXCI6XCJodHRwczpcXFwvXFxcL2FwcC5wYXBlci5jb1xcXC90dXRvclxcXC9zY2hlZHVsZVxcXC80NzA3OFxcXC92YWxpZGF0ZS10cmFuc2ZlclwiLFwiaWRcIjpcIjc4MGJhN2QxNjg1OTQwNmU4MTdlZDQxMmY4OWNjYWYwXCIsXCJ1cmxfaWRzXCI6W1wiMmE5NmU0OWM0YTNjY2MzNjdjM2VlYjA1MDc5ZGNmY2Q2YjJkYmM3NFwiXX0ifQ
+INFO  | 11/07/2023 08:33:52 PM | A shift transfer request opened with the link: 
+https://mandrillapp.com/track/click/30952325/app.paper.co?p=eyJzIjoieXdLUHZaMDcxQlZxcC1lLXlxRUlpTDJfcnFVIiwidiI6MSwicCI6IntcInVcIjozMDk1MjMyNSxcInZcIjoxLFwidXJsXCI6XCJodHRwczpcXFwvXFxcL2FwcC5wYXBlci5jb1xcXC90dXRvclxcXC9zY2hlZHVsZVxcXC80NTY2NFxcXC92YWxpZGF0ZS10cmFuc2ZlclwiLFwiaWRcIjpcImY5MzYzOGQwZTE3MTRhNzJhNDFjYTIxMmY3N2RiNGNlXCIsXCJ1cmxfaWRzXCI6W1wiMmE5NmU0OWM0YTNjY2MzNjdjM2VlYjA1MDc5ZGNmY2Q2YjJkYmM3NFwiXX0ifQ
+INFO  | 11/07/2023 08:33:52 PM | user quota exceeded 250 - total: 520 elapsed time: 55.33306384086609

@@ -88,7 +88,10 @@ def array_to_time_intervals(arr):
 
 
 def find_time_interval(txt):
-    line_of_time = unidecode.unidecode(txt.split('EDT')[1]).split(',')
+    try:
+        line_of_time = unidecode.unidecode(txt.split('EST')[1]).split(',')
+    except IndexError:
+        line_of_time = unidecode.unidecode(txt.split('EDT')[1]).split(',')
     date = line_of_time[1]
     hours = line_of_time[2].split(' ')
     start = dparser.parse(date + ' ' + hours[3] + ' ' + hours[4], fuzzy=True)

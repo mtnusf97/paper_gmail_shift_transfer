@@ -26,6 +26,13 @@ def user_configs(who='fati'):
         user_config.unable_path = '/home/matin/paper_gmail_shift_transfer/utils/unable_times.json'
         user_config.used_quota_path = '/home/matin/paper_gmail_shift_transfer/utils/used_quota.txt'
         user_config.error_path = '/home/matin/paper_gmail_shift_transfer/errors'
+    elif who == 'mtn_mac':
+        user_config.log_path = '/Users/matin/paper_gmail_shift_transfer/logs'
+        user_config.credentials_path = '/Users/matin/paper_gmail_shift_transfer/tokens_and_creds/credentials.json'
+        user_config.token_path = '/Users/matin/paper_gmail_shift_transfer/tokens_and_creds/token.json'
+        user_config.unable_path = '/Users/matin/paper_gmail_shift_transfer/utils/unable_times.json'
+        user_config.used_quota_path = '/Users/matin/paper_gmail_shift_transfer/utils/used_quota.txt'
+        user_config.error_path = '/Users/matin/paper_gmail_shift_transfer/errors'
     else:
         raise Exception('The person who is running this code is unknown')
 
