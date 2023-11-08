@@ -19,6 +19,13 @@ def user_configs(who='fati'):
         user_config.unable_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\utils\unable_times.json'
         user_config.used_quota_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\utils\used_quota.txt'
         user_config.error_path = r'C:\Users\Fatemeh\Desktop\paper_gmail_shift_transfer\errors'
+    elif who == 'fati_new':
+        user_config.log_path = r'C:\Users\Alvand\Desktop\paper_gmail_shift_transfer\logs'
+        user_config.credentials_path = r'C:\Alvand\Fatemeh\Desktop\paper_gmail_shift_transfer\tokens_and_creds\credentials.json'
+        user_config.token_path = r'C:\Users\Alvand\Desktop\paper_gmail_shift_transfer\tokens_and_creds\token.json'
+        user_config.unable_path = r'C:\Users\Alvand\Desktop\paper_gmail_shift_transfer\utils\unable_times.json'
+        user_config.used_quota_path = r'C:\Alvand\Fatemeh\Desktop\paper_gmail_shift_transfer\utils\used_quota.txt'
+        user_config.error_path = r'C:\Alvand\Fatemeh\Desktop\paper_gmail_shift_transfer\errors'
     elif who == 'mtn':
         user_config.log_path = '/home/matin/paper_gmail_shift_transfer/logs'
         user_config.credentials_path = '/home/matin/paper_gmail_shift_transfer/tokens_and_creds/credentials.json'
