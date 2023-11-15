@@ -164,8 +164,8 @@ if __name__ == '__main__':
             pass
         except Exception as e:
             now_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-            error_file = os.path.join(user_config.error_path, str(e) + f"_error_{now_str}.pkl")
-            save_error(error_file, e)
+            # error_file = os.path.join(user_config.error_path, str(e) + f"_error_{now_str}.pkl")
+            # save_error(error_file, e)
 
             msg = f'\nError occurred:\n{e}' \
                   f'\ncurrent time: {time.ctime(time.time())}'
