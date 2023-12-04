@@ -103,6 +103,42 @@ while True:
             print(msg_fati + '\n-------------------------------------')
             send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
             break
+
+        elif err_tb.find('TimeoutError') != -1:
+            msg_fati = (f'NO NEED TO RERUN!'
+                        f'\nTimeoutError'
+                        f'\nat: {now}')
+            print(msg_fati + '\n-------------------------------------')
+            send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
+
+            msg_err = (f'NO NEED TO RERUN!'
+                       f'\nTimeoutError:'
+                       f'\n-------------------'
+                       f'\n'
+                       f'\n{err_tb} '
+                       f'\n-------------------'
+                       f'\nat: {now}')
+            send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
+
+        elif err_tb.find('HttpError 400') != -1:
+            msg_fati = (f'NO NEED TO RERUN!'
+                        f'\nHttpError 400'
+                        f'\nat: {now}')
+            print(msg_fati + '\n-------------------------------------')
+            send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
+
+            msg_err = (f'NO NEED TO RERUN!'
+                       f'\nHttpError 400'
+                       f'\n'
+                       f'\n-------traceback--------'
+                       f'\n{err_tb}'
+                       f'\n'
+                       f'\n======error======='
+                       f'\n{e}'
+                       f'\n-------------------'
+                       f'\nat: {now}')
+            send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
+
         else:
             msg_fati = (f'YOU SHOULD PROBABLY RERUN!'
                         f'\nUndefined Error'
@@ -112,12 +148,14 @@ while True:
 
             msg_err = (f'YOU SHOULD PROBABLY RERUN!'
                        f'\nUndefined Error:'
-                       f'\n-------------------\n\n '
-                       f'{err_tb} '
+                       f'\n-------------------'
+                       f'\n'
+                       f'\n{err_tb} '
                        f'\n-------------------'
                        f'\nat: {now}')
             send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
             break
+
     if user_used_quota > 250:
         now = time.ctime(time.time())
         period = time.time() - last_time
