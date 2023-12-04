@@ -5,8 +5,14 @@ scopes = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googlea
 
 make_read_body = {"addLabelIds": [], "removeLabelIds": ['UNREAD']}
 
-bot_token = "6012344665:AAHWB1qnazCeh6Rk2A0PE5WcEoZ6GVm3FAU"
-channel_id = 'codenewsforfati'
+bot_token_fati = "6012344665:AAHWB1qnazCeh6Rk2A0PE5WcEoZ6GVm3FAU"
+channel_id_fati = 'codenewsforfati'
+
+bot_token_err = "6770485318:AAHGoz0QM0BdKayhi9uXADAR9TQHNCHbJsg"
+channel_id_err = 'codeerrorsformatin'
+
+bot_token_quota = "6935242835:AAHEO53hwysGCXE8ttdrJdd9H2VpjQXr3Do"
+channel_id_quota = 'usedquotaformatin'
 
 
 def user_configs(who='fati'):
