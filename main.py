@@ -162,7 +162,9 @@ while True:
         last_time = time.time()
         total_user_used_quota += user_used_quota
         user_used_quota = 0
-        msg_quota = (f'user quota exceeded 250 - total: {total_user_used_quota} elapsed time: {period}'
+        msg_quota = (f'user quota exceeded 250 - '
+                     f'\ntotal: {total_user_used_quota} '
+                     f'\nelapsed time: {period}'
                      f'\n-------------------'
                      f'\nat: {now}')
         send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
