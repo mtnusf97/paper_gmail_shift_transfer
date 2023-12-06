@@ -109,7 +109,7 @@ while True:
                         f'\nTimeoutError'
                         f'\nat: {now}')
             print(msg_fati + '\n-------------------------------------')
-            send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
+            # send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
 
             msg_err = (f'NO NEED TO RERUN!'
                        f'\nTimeoutError:'
@@ -125,7 +125,7 @@ while True:
                         f'\nHttpError 400'
                         f'\nat: {now}')
             print(msg_fati + '\n-------------------------------------')
-            send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
+            # send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
 
             msg_err = (f'NO NEED TO RERUN!'
                        f'\nHttpError 400'
