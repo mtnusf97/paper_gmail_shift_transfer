@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 
 from utils.config import *
 from utils.functions import *
+import datetime
 from utils.logger import setup_logging
 
 parser = argparse.ArgumentParser(description='gmail shift transfer script')
@@ -32,6 +33,9 @@ unable_times = array_to_time_intervals(json.load(unable_file))
 user_used_quota = 0
 total_user_used_quota = 0
 last_time = time.time()
+start_time = time.time()
+hr_print_time = time.time()
+n_trials = 0
 
 while True:
     try:
@@ -40,6 +44,7 @@ while True:
         message_id = messages['messages'][0]['id']
         msg_email = service.users().messages().get(userId='me', id=message_id, format='full').execute()
         user_used_quota += 5
+        n_trials += 1
         if read_message_subject(msg_email) == 'Shift Transfer Request':
             service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
             text = read_message_text(msg_email)
@@ -156,17 +161,44 @@ while True:
             send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
             break
 
+    # if user_used_quota > 250:
+    #     now = time.ctime(time.time())
+    #     period = time.time() - last_time
+    #     last_time = time.time()
+    #     total_user_used_quota += user_used_quota
+    #     user_used_quota = 0
+    #     msg_quota = (f'user quota exceeded 250 - '
+    #                  f'\ntotal: {total_user_used_quota} '
+    #                  f'\nelapsed time: {period}'
+    #                  f'\n-------------------'
+    #                  f'\nat: {now}')
+    #     send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
     if user_used_quota > 250:
         now = time.ctime(time.time())
         period = time.time() - last_time
         last_time = time.time()
         total_user_used_quota += user_used_quota
         user_used_quota = 0
-        msg_quota = (f'user quota exceeded 250 - '
-                     f'\ntotal: {total_user_used_quota} '
-                     f'\nelapsed time: {period}'
-                     f'\n-------------------'
-                     f'\nat: {now}')
-        send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
 
-    time.sleep(0.5)
+        if period < 1:
+            msg_quota = (f'\n>>>>WARNINING<<<<'
+                         f'quota >250 in <1s'
+                         f'\ntotal: {total_user_used_quota} '
+                         f'\nelapsed time: {period}'
+                         f'\n-------------------'
+                         f'\nat: {now}')
+            send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
+
+        time_delta = time.time() - hr_print_time
+        if time_delta > 3600:
+            start_delta = time.time() - start_time
+            hr_print_time = time.time()
+            msg_quota = (f'1 hour passed'
+                         f'\ntotal: {total_user_used_quota} '
+                         f'\nrunning time: {datetime.timedelta(start_delta)}'
+                         f'\naverage: {total_user_used_quota / start_delta}'
+                         f'\n-------------------'
+                         f'\nat: {now}')
+            send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
+
+    time.sleep(0.1)
