@@ -195,8 +195,9 @@ while True:
             hr_print_time = time.time()
             msg_quota = (f'1 hour passed'
                          f'\ntotal: {total_user_used_quota} '
-                         f'\nrunning time: {datetime.timedelta(start_delta)}'
+                         f'\nrunning time: {datetime.timedelta(start_delta / 86400)}'
                          f'\naverage: {total_user_used_quota / start_delta}'
+                         f'\nn_trials: {n_trials}'
                          f'\n-------------------'
                          f'\nat: {now}')
             send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
