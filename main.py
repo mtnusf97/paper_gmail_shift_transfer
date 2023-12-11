@@ -41,10 +41,10 @@ while True:
     try:
         messages = service.users().messages().list(userId='me', maxResults=1, labelIds='UNREAD').execute()
         user_used_quota += 5
+        n_trials += 1
         message_id = messages['messages'][0]['id']
         msg_email = service.users().messages().get(userId='me', id=message_id, format='full').execute()
         user_used_quota += 5
-        n_trials += 1
         if read_message_subject(msg_email) == 'Shift Transfer Request':
             service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
             text = read_message_text(msg_email)
