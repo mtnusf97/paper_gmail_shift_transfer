@@ -61,6 +61,9 @@ while True:
             print(msg_fati + '\n-------------------------------------')
             send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
             user_used_quota += 5
+        else:
+            msg_fati = "You have an unread message in your inbox. If you don't mark it as read, I won't work!!!"
+            time.sleep(5)
     except KeyError:
         # if there is not any new emails, we will always get KeyError from messages['messages'][0]['id']
         #     msg_fati = (f'NO NEED TO RERUN!'
