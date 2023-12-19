@@ -97,8 +97,12 @@ def find_time_interval(txt):
 
 
 def send_telegram_message(botID, channelID, message):
-    telegram_api_url = f"https://api.telegram.org/bot{botID}/sendMessage?chat_id=@{channelID}&text={message}"
-    response = requests.get(telegram_api_url)
+    msgs = [message[i:i + 4096] for i in range(0, len(message), 4096)]
+    response = None
+    for text in msgs:
+        telegram_api_url = f"https://api.telegram.org/bot{botID}/sendMessage?chat_id=@{channelID}&text={text}"
+        response = requests.get(telegram_api_url)
+
     return response
 
 
