@@ -205,4 +205,4 @@ while True:
                          f'\nat: {now}')
             send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
 
-    time.sleep(0.02)
+    time.sleep(0.004)
