@@ -65,21 +65,7 @@ while True:
         print(msg_fati + '\n-------------------------------------')
         send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
     except KeyError:
-        # if there is not any new emails, we will always get KeyError from messages['messages'][0]['id']
-        #     msg_fati = (f'NO NEED TO RERUN!'
-        #                 f'\nKeyError'
-        #                 f'\nat: {now}')
-        #     send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
-        #     print(msg_fati + '\n-------------------')
-        #
-        #     msg_err = (f'NO NEED TO RERUN!'
-        #                f'\nKeyError: '
-        #                f'\n-------------------\n\n '
-        #                f'{err_tb} '
-        #                f'\n-------------------'
-        #                f'\nat: {now}')
-        #     send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
-        pass
+        pass  # in case there is no new emails, we'll get a KeyError on messages['messages'][0]['id']
     except Exception as e:
         err_tb = traceback.format_exc()
         now = time.ctime(time.time())
@@ -117,7 +103,6 @@ while True:
                         f'\nTimeoutError'
                         f'\nat: {now}')
             print(msg_fati + '\n-------------------------------------')
-            # send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
 
             msg_err = (f'NO NEED TO RERUN!'
                        f'\nTimeoutError:'
@@ -133,10 +118,45 @@ while True:
                         f'\nHttpError 400'
                         f'\nat: {now}')
             print(msg_fati + '\n-------------------------------------')
-            # send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
 
             msg_err = (f'NO NEED TO RERUN!'
                        f'\nHttpError 400'
+                       f'\n'
+                       f'\n-------traceback--------'
+                       f'\n{err_tb}'
+                       f'\n'
+                       f'\n======error======='
+                       f'\n{e}'
+                       f'\n-------------------'
+                       f'\nat: {now}')
+            send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
+
+        elif err_tb.find('HttpError 500') != -1:
+            msg_fati = (f'NO NEED TO RERUN!'
+                        f'\nHttpError 500'
+                        f'\nat: {now}')
+            print(msg_fati + '\n-------------------------------------')
+
+            msg_err = (f'NO NEED TO RERUN!'
+                       f'\nHttpError 500'
+                       f'\n'
+                       f'\n-------traceback--------'
+                       f'\n{err_tb}'
+                       f'\n'
+                       f'\n======error======='
+                       f'\n{e}'
+                       f'\n-------------------'
+                       f'\nat: {now}')
+            send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
+
+        elif err_tb.find('HttpError 503') != -1:
+            msg_fati = (f'NO NEED TO RERUN!'
+                        f'\nHttpError 503'
+                        f'\nat: {now}')
+            print(msg_fati + '\n-------------------------------------')
+
+            msg_err = (f'NO NEED TO RERUN!'
+                       f'\nHttpError 503'
                        f'\n'
                        f'\n-------traceback--------'
                        f'\n{err_tb}'
@@ -164,18 +184,6 @@ while True:
             send_telegram_message(botID=bot_token_err, channelID=channel_id_err, message=msg_err)
             break
 
-    # if user_used_quota > 250:
-    #     now = time.ctime(time.time())
-    #     period = time.time() - last_time
-    #     last_time = time.time()
-    #     total_user_used_quota += user_used_quota
-    #     user_used_quota = 0
-    #     msg_quota = (f'user quota exceeded 250 - '
-    #                  f'\ntotal: {total_user_used_quota} '
-    #                  f'\nelapsed time: {period}'
-    #                  f'\n-------------------'
-    #                  f'\nat: {now}')
-    #     send_telegram_message(botID=bot_token_quota, channelID=channel_id_quota, message=msg_quota)
     if user_used_quota > 250:
         now = time.ctime(time.time())
         period = time.time() - last_time
