@@ -1,17 +1,14 @@
 from __future__ import print_function
-
 import argparse
 import json
 import time
 import traceback
 import webbrowser
-
 from googleapiclient.discovery import build
-
 from utils.config import *
 from utils.functions import *
 import datetime
-from utils.logger import setup_logging
+
 
 parser = argparse.ArgumentParser(description='gmail shift transfer script')
 parser.add_argument('-w', '--who', help='who is running this script', required=True, type=str)
@@ -19,16 +16,15 @@ args = vars(parser.parse_args())
 who = args['who']
 user_config = user_configs(who)
 
-# now_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-# log_file = os.path.join(user_config.log_path, "log_{}.txt".format(now_str))
-# logger = setup_logging('INFO', log_file)
-# logger.info('whatever')
-
 creds = get_creds(user_config.credentials_path, user_config.token_path, scopes)
 service = build('gmail', 'v1', credentials=creds)
 
-unable_file = open(user_config.unable_path)
-unable_times = array_to_time_intervals(json.load(unable_file))
+fixed_unable_file = open(user_config.fixed_unable_path)
+occasional_unable_file = open(user_config.occasional_unable_path)
+occasional_unable_times = array_to_time_intervals(json.load(occasional_unable_file))
+fixed_unable_times = array_to_time_intervals(json.load(fixed_unable_file))
+unable_times = dict(occasional=occasional_unable_times, fixed=fixed_unable_times)
+print(unable_times)
 
 user_used_quota = 0
 total_user_used_quota = 0
@@ -49,12 +45,16 @@ while True:
             service.users().messages().modify(userId='me', id=message_id, body=make_read_body).execute()
             text = read_message_text(msg_email)
             request_interval = find_time_interval(text)
-            for interval in unable_times:
-                if interval.overlaps(request_interval):
-                    msg_fati = f'A shift transfer request rejected due to overlap with: {interval}'
-                    print(msg_fati + '\n-------------------------------------')
-                    send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
-                    raise Exception('Rejection due to overlap')
+            if times_overlap(unable_times, request_interval):
+                msg_fati = f'A shift transfer request rejected due to overlap with one of the unable times.'
+                send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
+                raise Exception('Rejection due to overlap')
+            # for interval in unable_times:
+            #     if interval.overlaps(request_interval):
+            #         msg_fati = f'A shift transfer request rejected due to overlap with: {interval}'
+            #         print(msg_fati + '\n-------------------------------------')
+            #         send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
+            #         raise Exception('Rejection due to overlap')
             link = find_link(text)
             webbrowser.open(link)
             msg_fati = f'A shift transfer request opened with the link: \n{link}'
@@ -65,14 +65,13 @@ while True:
         print(msg_fati + '\n-------------------------------------')
         send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
     except KeyError:
-        pass  # in case there is no new emails, we'll get a KeyError on messages['messages'][0]['id']
+        pass  # in the case that there is no new emails, we'll get a KeyError from messages['messages'][0]['id']
     except Exception as e:
         err_tb = traceback.format_exc()
         now = time.ctime(time.time())
 
         if err_tb.find('Rejection due to overlap') != -1:
             msg_fati = 'Rejection due to overlap!'
-            send_telegram_message(botID=bot_token_fati, channelID=channel_id_fati, message=msg_fati)
             print(msg_fati + '\n-------------------')
             
         elif err_tb.find('Token has been expired or revoked') != -1:

@@ -1,2 +1,4 @@
 utils/used_quota.txt
-utils/unable_times.json
+utils/occasional_unable_times.json
+utils/fixed_unable_times.json
+logs/*

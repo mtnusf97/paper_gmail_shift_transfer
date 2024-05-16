@@ -1,11 +1,9 @@
 from __future__ import print_function
-
 import datetime
 import os.path
 import pickle
 import re
 from base64 import urlsafe_b64decode
-
 import dateutil.parser as dparser
 import pandas as pd
 import requests
@@ -13,6 +11,7 @@ import unidecode
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+from datetime import datetime, timedelta
 
 
 class Bcolors:
@@ -92,7 +91,7 @@ def find_time_interval(txt):
     start = dparser.parse(date + ' ' + hours[3] + ' ' + hours[4], fuzzy=True)
     end = dparser.parse(date + ' ' + hours[6] + ' ' + hours[7], fuzzy=True)
     if start > end:
-        end = end + datetime.timedelta(days=1)
+        end = end + timedelta(days=1)
     return pd.Interval(pd.Timestamp(start), pd.Timestamp(end))
 
 
@@ -109,3 +108,53 @@ def send_telegram_message(botID, channelID, message):
 def save_error(path, error):
     with open(path, 'wb') as file:
         pickle.dump(error, file, pickle.HIGHEST_PROTOCOL)
+
+
+def occasional_times_overlap(interval1: pd.Interval, interval2: pd.Interval):
+    return interval1.overlaps(interval2)
+
+
+def normalize_interval(start, end):
+    """Ensure the interval is valid by rolling over the end time if it's less than the start time."""
+    start_dt = pd.Timestamp.combine(pd.Timestamp.min, start)
+    if end < start:
+        end_dt = pd.Timestamp.combine(pd.Timestamp.min + timedelta(days=1), end)
+    else:
+        end_dt = pd.Timestamp.combine(pd.Timestamp.min, end)
+
+    # Create additional intervals for comprehensive checking
+    start_prev_day = start_dt - timedelta(days=1)
+    end_prev_day = end_dt - timedelta(days=1)
+
+    intervals = [
+        pd.Interval(start_dt, end_dt),  # Original interval
+        pd.Interval(start_prev_day, end_prev_day),  # Interval with start one day earlier
+    ]
+
+    return intervals
+
+
+def fixed_times_overlap(interval1, interval2):
+    # Extract time component from interval bounds
+    start1 = interval1.left.time()
+    end1 = interval1.right.time()
+    start2 = interval2.left.time()
+    end2 = interval2.right.time()
+
+    # Normalize the intervals to handle day rollover
+    interval1_times = normalize_interval(start1, end1)
+    interval2_times = normalize_interval(start2, end2)
+
+    # Check if any of the intervals overlap
+    for interval1_time in interval1_times:
+        for interval2_time in interval2_times:
+            if interval1_time.overlaps(interval2_time):
+                return True
+
+    return False
+
+
+def times_overlap(unable_times: dict, request_interval: pd.Interval):
+    is_fixed_times = any([fixed_times_overlap(i, request_interval) for i in unable_times['fixed']])
+    is_occasional_times = any([occasional_times_overlap(i, request_interval) for i in unable_times['occasional']])
+    return is_fixed_times or is_occasional_times
