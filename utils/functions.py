@@ -100,7 +100,10 @@ def send_telegram_message(botID, channelID, message):
     response = None
     for text in msgs:
         telegram_api_url = f"https://api.telegram.org/bot{botID}/sendMessage?chat_id=@{channelID}&text={text}"
-        response = requests.get(telegram_api_url)
+        try:
+            response = requests.get(telegram_api_url)
+        except:
+            print('Telegram error in sending a message!')
 
     return response
 
